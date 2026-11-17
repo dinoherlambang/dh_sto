@@ -1,36 +1,12 @@
-**Business Need**
+### Latar Belakang & Kebutuhan Bisnis
 
-Companies with multiple warehouses sometimes need to initiate stock transfers
-based on an operational decision — not triggered by procurement demand. Typical
-use cases:
+Pada operasional multi-gudang, perpindahan barang antar-cabang atau dari gudang pusat ke cabang membutuhkan kontrol ketat untuk mencegah selisih stok (*shrinkage*) dan pengiriman tanpa otorisasi.
 
-- Proactively balancing inventory between locations.
-- Reviewing and confirming both the outgoing and incoming legs before any stock
-  moves.
-- Tracing the full inter-warehouse operation as a single document.
+Di Odoo standar, mutasi internal dilakukan langsung di dokumen `stock.picking` tanpa adanya dokumen pemesanan (*order/request*) yang memiliki alur persetujuan (*approval*).
 
-Odoo's standard resupply routes are demand-driven and do not provide a single
-document grouping both legs of a transfer.
+### Pendekatan Solusi (`dh_sto`)
 
-**Approach**
-
-On confirmation, the transfer creates exactly two pickings connected through the
-company's internal transit location: an **OUT** picking at the source warehouse
-and an **IN** picking at the destination warehouse. Both use dedicated operation
-types (`IW` / `IWR`) created lazily per warehouse, keeping inter-warehouse moves
-out of regular delivery and receipt queues.
-
-The OCA module `stock_warehouse_resupply_route_push` (v18.0+,
-`OCA/stock-logistics-workflow`) provides a similar capability via push rules,
-but the IN picking is only created after the OUT picking is validated — making
-it impossible to review both legs before stock moves.
-
-**Useful Information**
-
-- Requires an **Internal Transit Location** configured on the company
-  (`Inventory > Configuration > Warehouses`).
-- Designed for single-company, multi-warehouse setups.
-- Source and destination locations default to each warehouse's main stock
-  location and can be overridden per transfer.
-- Works with Odoo's standard backorder flow: partial validations create
-  backorders automatically linked to the same transfer document.
+Modul `dh_sto` memperkenalkan lapisan **Stock Transfer Order (STO)**:
+- Berdiri sendiri (*standalone*) dan hanya bergantung pada modul standar `stock`.
+- Form sederhana dan fokus pada kebutuhan logistik murni, tanpa beban komersial (tidak ada harga jual, margin, atau pajak yang membingungkan staf gudang).
+- Memisahkan peran antara pemohon (cabang), penyetujui (manajer inventory), dan eksekutor (tim operasional gudang).

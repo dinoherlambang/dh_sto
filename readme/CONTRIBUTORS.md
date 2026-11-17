@@ -1,2 +1,2 @@
-- ForgeFlow S.L.
-  - Guillem Casassas \<<guillem.casassas@forgeflow.com>\>
+- Dino (`dh`)
+- Based on original concept by ForgeFlow S.L. & OCA

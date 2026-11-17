@@ -1,37 +1,31 @@
-Go to _Inventory > Operations > Inter-Warehouse Transfers_ and create a new transfer:
+### Panduan Penggunaan
 
-1. Select **From Warehouse** and **To Warehouse** (same company).
-2. Optionally override the **From Location** and **To Location** (they default to each
-   warehouse's main stock location).
-3. Add one or more product lines with quantities.
-4. Click **Confirm**.
+Akses menu melalui: **Inventory > Operations > Stock Transfer Orders (STO)**
 
-Two stock pickings are created automatically — an OUT picking at the source warehouse
-and an IN picking at the destination warehouse, connected through the company's internal
-transit location. Use the **Transfers** smart button to open them. Each picking takes
-the address of the other end as its partner: the OUT picking the address of the
-destination warehouse, the IN picking the address of the source warehouse.
+1. **Pembuatan STO (Draft):**
+   - Klik **Create**.
+   - Pilih **From Warehouse** (Gudang Asal) dan **To Warehouse** (Gudang Tujuan).
+   - Tentukan **Scheduled Date** (Tanggal Rencana Transfer).
+   - Masukkan daftar produk beserta kuantitas pada tab **Products**.
+   - Simpan dokumen.
 
-Validate the OUT picking when the goods leave the source warehouse. The transfer moves
-to _In Transit_. Validate the IN picking when the goods arrive at the destination. The
-transfer moves to _Done_.
+2. **Pengajuan Approval:**
+   - Pemohon mengklik tombol **Submit for Approval**.
+   - Status STO berubah menjadi **Waiting Approval** (`to_approve`).
 
-Partial validation creates backorders that are automatically linked to the same transfer
-document.
+3. **Persetujuan (Approval):**
+   - Manajer Inventory atau Supervisor memeriksa dokumen.
+   - Klik tombol **Approve**.
+   - Sistem otomatis membuat 2 dokumen transfer (OUT dan IN) yang dapat dipantau melalui smart button **Transfers**. Status STO berubah menjadi **Approved** (`confirmed`).
 
-A confirmed transfer stays editable: changing a line quantity, adding a line or removing
-one propagates to the stock moves of both legs. The **Shipped** and **Received** columns
-show how much of each line is already validated.
+4. **Pengiriman dari Gudang Asal (Surat Jalan):**
+   - Tim gudang asal memproses dokumen pengeluaran (**Picking OUT**).
+   - Validasi Picking OUT setelah barang diberangkatkan.
+   - Status STO otomatis berubah menjadi **In Transit** (`in_transit`).
 
-- Increasing a quantity extends the open moves. If a leg has no open picking left — for
-  instance the OUT was already validated — a new picking is created for the additional
-  quantity.
-- Decreasing a quantity reduces the open moves, and cancels them when it reaches zero. A
-  quantity cannot be decreased below what is already validated on that leg; create a
-  return instead.
-- Removing a line cancels its moves. A line that is already partly validated cannot be
-  removed.
+5. **Penerimaan di Gudang Tujuan:**
+   - Tim gudang tujuan memeriksa fisik barang yang tiba dan memvalidasi dokumen penerimaan (**Picking IN**).
+   - Status STO otomatis berubah menjadi **Done** (`done`).
 
-Internal transfers between locations of different warehouses are no longer allowed
-outside this document: attempting to create such an internal move raises a validation
-error asking to use an Inter-Warehouse Transfer instead.
+6. **Pembatalan / Reset:**
+   - Dokumen pada status Draft atau Waiting Approval dapat dibatalkan (**Cancel**) atau dikembalikan ke Draft (**Set to Draft**).
