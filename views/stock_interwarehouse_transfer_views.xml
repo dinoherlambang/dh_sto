@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_stock_interwarehouse_transfer_form" model="ir.ui.view">
+        <field name="name">stock.interwarehouse.transfer.form</field>
+        <field name="model">stock.interwarehouse.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_submit"
+                        string="Submit for Approval"
+                        type="object"
+                        class="btn-primary"
+                        attrs="{'invisible': [('state', '!=', 'draft')]}"
+                    />
+                    <button
+                        name="action_approve"
+                        string="Approve"
+                        type="object"
+                        class="btn-primary"
+                        groups="stock.group_stock_manager"
+                        attrs="{'invisible': [('state', '!=', 'to_approve')]}"
+                    />
+                    <button
+                        name="action_set_to_draft"
+                        string="Set to Draft"
+                        type="object"
+                        attrs="{'invisible': [('state', 'not in', ['to_approve', 'cancelled'])]}"
+                    />
+                    <button
+                        name="action_cancel"
+                        string="Cancel"
+                        type="object"
+                        attrs="{'invisible': [('state', 'in', ['done', 'cancelled'])]}"
+                    />
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,to_approve,confirmed,in_transit,done"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_pickings"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-truck"
+                            attrs="{'invisible': [('picking_count', '=', 0)]}"
+                        >
+                            <field
+                                name="picking_count"
+                                widget="statinfo"
+                                string="Transfers"
+                            />
+                        </button>
+                    </div>
+                    <field name="company_id" invisible="1" />
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field
+                                name="warehouse_from_id"
+                                attrs="{'readonly': [('state', 'in', ['confirmed', 'in_transit', 'done', 'cancelled'])]}"
+                            />
+                            <field
+                                name="warehouse_to_id"
+                                attrs="{'readonly': [('state', 'in', ['confirmed', 'in_transit', 'done', 'cancelled'])]}"
+                            />
+                        </group>
+                        <group>
+                            <field
+                                name="location_id"
+                                attrs="{'readonly': [('state', 'in', ['confirmed', 'in_transit', 'done', 'cancelled'])]}"
+                            />
+                            <field
+                                name="location_dest_id"
+                                attrs="{'readonly': [('state', 'in', ['confirmed', 'in_transit', 'done', 'cancelled'])]}"
+                            />
+                            <field
+                                name="scheduled_date"
+                                attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
+                            />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field
+                                name="line_ids"
+                                attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
+                            >
+                                <tree editable="bottom">
+                                    <field name="state" invisible="1" />
+                                    <field name="product_id" />
+                                    <field name="product_uom_qty" />
+                                    <field name="product_uom" />
+                                    <field
+                                        name="qty_shipped"
+                                        readonly="1"
+                                        attrs="{'column_invisible': [('parent.state', 'in', ['draft', 'to_approve'])]}"
+                                    />
+                                    <field
+                                        name="qty_received"
+                                        readonly="1"
+                                        attrs="{'column_invisible': [('parent.state', 'in', ['draft', 'to_approve'])]}"
+                                    />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" />
+                    <field name="activity_ids" widget="mail_activity" />
+                    <field name="message_ids" widget="mail_thread" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_interwarehouse_transfer_list" model="ir.ui.view">
+        <field name="name">stock.interwarehouse.transfer.list</field>
+        <field name="model">stock.interwarehouse.transfer</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state == 'draft'" decoration-warning="state == 'to_approve'" decoration-info="state in ('confirmed', 'in_transit')" decoration-success="state == 'done'" decoration-danger="state == 'cancelled'">
+                <field name="name" />
+                <field name="warehouse_from_id" />
+                <field name="warehouse_to_id" />
+                <field name="scheduled_date" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_stock_interwarehouse_transfer" model="ir.actions.act_window">
+        <field name="name">Stock Transfer Orders</field>
+        <field name="res_model">stock.interwarehouse.transfer</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="menu_stock_interwarehouse_transfer"
+        name="Stock Transfer Orders (STO)"
+        parent="stock.menu_stock_warehouse_mgmt"
+        action="action_stock_interwarehouse_transfer"
+        sequence="30"
+    />
+</odoo>
