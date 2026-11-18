@@ -65,14 +65,15 @@ class StockPicking(models.Model):
     def _get_sto_transfer(self):
         """Mencari Stock Transfer Order yang terkait dengan picking ini."""
         self.ensure_one()
+        # Gunakan sudo() agar proses inventori dapat membaca referensi STO secara konsisten
         if self.interwarehouse_transfer_id:
-            return self.interwarehouse_transfer_id
+            return self.interwarehouse_transfer_id.sudo()
         if self.origin:
-            sto = self.env["stock.interwarehouse.transfer"].search(
+            sto = self.env["stock.interwarehouse.transfer"].sudo().search(
                 [("name", "=", self.origin.strip())], limit=1
             )
             if sto:
-                return sto
+                return sto.sudo()
         return False
 
     def _get_allowed_sto_products(self):
@@ -86,7 +87,8 @@ class StockPicking(models.Model):
         if not sto:
             return None
 
-        allowed_products = sto.line_ids.mapped("product_id")
+        # Akses line_ids dengan sudo() agar pembacaan daftar produk sah bebas dari batasan hak akses user
+        allowed_products = sto.sudo().line_ids.sudo().mapped("product_id")
 
         # 1. Komponen OCA product_pack
         for prod in list(allowed_products):
