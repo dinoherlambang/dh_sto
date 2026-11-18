@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Definisi Aksi Cetak Report Surat Jalan STO -->
+    <report
+        id="action_report_sto_deliveryslip"
+        model="stock.picking"
+        string="Surat Jalan Transfer Antar-Gudang (STO)"
+        report_type="qweb-pdf"
+        name="dh_sto.report_sto_delivery_document"
+        file="dh_sto.report_sto_delivery_document"
+        print_report_name="'Surat Jalan STO - %s' % (object.name)"
+        groups="stock.group_stock_user"
+    />
+
+    <!-- Template Dokumen QWeb Surat Jalan STO -->
+    <template id="report_sto_delivery_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: #212529;">
+                        
+                        <!-- Header Dokumen -->
+                        <div class="row mb16 pb8" style="border-bottom: 2px solid #000;">
+                            <div class="col-7">
+                                <h3 class="mb0 font-weight-bold" style="color: #004085;">SURAT JALAN TRANSFER ANTAR-GUDANG</h3>
+                                <div style="font-size: 13px; font-weight: bold;">
+                                    <span t-field="o.name"/>
+                                </div>
+                                <div t-if="o.interwarehouse_transfer_id or o.origin">
+                                    <strong>No. Referensi STO: </strong>
+                                    <span t-esc="o.interwarehouse_transfer_id.name or o.origin"/>
+                                </div>
+                            </div>
+                            <div class="col-5 text-right">
+                                <div><strong>Tanggal Kirim: </strong><span t-esc="(o.date_done or o.scheduled_date or time.strftime('%Y-%m-%d')).strftime('%d/%m/%Y %H:%M') if hasattr(o.date_done or o.scheduled_date, 'strftime') else (o.date_done or o.scheduled_date or '-')"/></div>
+                                <div><strong>No. Kendaraan: </strong><span t-esc="o.send_by or (o.interwarehouse_transfer_id and o.interwarehouse_transfer_id.send_by) or '-'"/></div>
+                                <div><strong>Driver / Sopir: </strong><span t-esc="o.driver_by or (o.interwarehouse_transfer_id and o.interwarehouse_transfer_id.driver_by) or '-'"/></div>
+                            </div>
+                        </div>
+
+                        <!-- Info Gudang Asal & Gudang Tujuan -->
+                        <div class="row mb16">
+                            <div class="col-6">
+                                <div style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px; min-height: 80px; background-color: #f8f9fa;">
+                                    <div class="font-weight-bold text-uppercase" style="border-bottom: 1px solid #ced4da; margin-bottom: 4px; color: #495057;">
+                                        <i class="fa fa-arrow-circle-up text-danger"/> Gudang Pengirim (Asal)
+                                    </div>
+                                    <div><strong>Gudang: </strong><span t-esc="o.interwarehouse_transfer_id.warehouse_from_id.name if o.interwarehouse_transfer_id else o.location_id.complete_name"/></div>
+                                    <div><strong>Lokasi: </strong><span t-field="o.location_id.complete_name"/></div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px; min-height: 80px; background-color: #f8f9fa;">
+                                    <div class="font-weight-bold text-uppercase" style="border-bottom: 1px solid #ced4da; margin-bottom: 4px; color: #495057;">
+                                        <i class="fa fa-arrow-circle-down text-success"/> Gudang Penerima (Tujuan)
+                                    </div>
+                                    <div><strong>Gudang: </strong><span t-esc="o.interwarehouse_transfer_id.warehouse_to_id.name if o.interwarehouse_transfer_id else o.location_dest_id.complete_name"/></div>
+                                    <div><strong>Lokasi: </strong><span t-field="o.location_dest_id.complete_name"/></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabel Rincian Produk & Nomor Seri -->
+                        <table class="table table-sm table-bordered mt10 mb16" style="width: 100%;">
+                            <thead style="background-color: #e9ecef; color: #000;">
+                                <tr>
+                                    <th style="width: 6%; text-align: left;"><strong>No</strong></th>
+                                    <th style="width: 44%;"><strong>Deskripsi Produk</strong></th>
+                                    <th style="width: 25%;"><strong>Nomor Seri / Lot</strong></th>
+                                    <th style="width: 12%; text-align: right;"><strong>Kuantitas</strong></th>
+                                    <th style="width: 13%; text-align: center;"><strong>Satuan</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="lines" t-value="o.move_line_ids.sorted(key=lambda l: (l.move_id.sequence or 10, l.move_id.id or 0, l.id or 0)) if o.move_line_ids else o.move_lines"/>
+                                <t t-foreach="lines" t-as="line">
+                                    <tr>
+                                        <!-- No Urut Rata Kiri -->
+                                        <td class="text-left font-weight-bold">
+                                            <span t-esc="line_index + 1"/>
+                                        </td>
+                                        <!-- Produk -->
+                                        <td>
+                                            <span t-esc="line.product_id.display_name or '-'"/>
+                                        </td>
+                                        <!-- Nomor Seri / Lot -->
+                                        <td>
+                                            <t t-if="hasattr(line, 'lot_id') and (line.lot_id or line.lot_name)">
+                                                <span t-esc="line.lot_id.name or line.lot_name"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span>-</span>
+                                            </t>
+                                        </td>
+                                        <!-- Kuantitas -->
+                                        <td class="text-right font-weight-bold">
+                                            <t t-if="hasattr(line, 'qty_done') and line.qty_done > 0">
+                                                <span t-esc="'%.0f' % line.qty_done if line.qty_done.is_integer() else line.qty_done"/>
+                                            </t>
+                                            <t t-elif="hasattr(line, 'product_uom_qty')">
+                                                <span t-esc="'%.0f' % line.product_uom_qty if line.product_uom_qty.is_integer() else line.product_uom_qty"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span>-</span>
+                                            </t>
+                                        </td>
+                                        <!-- Satuan -->
+                                        <td class="text-center">
+                                            <span t-esc="line.product_uom_id.name if hasattr(line, 'product_uom_id') else (line.product_uom.name if hasattr(line, 'product_uom') else 'Units')"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Catatan Khusus Pengiriman -->
+                        <div t-if="o.interwarehouse_transfer_id and o.interwarehouse_transfer_id.notes" class="mb16" style="border: 1px dashed #6c757d; padding: 6px 10px; border-radius: 4px; background-color: #fdfdfe;">
+                            <strong>Instruksi / Catatan:</strong>
+                            <div t-esc="o.interwarehouse_transfer_id.notes"/>
+                        </div>
+
+                        <!-- Kolom Tanda Tangan 4 Pihak -->
+                        <div class="row mt32" style="page-break-inside: avoid;">
+                            <div class="col-3 text-center">
+                                <div><strong>Pengirim (Gudang Asal)</strong></div>
+                                <div style="height: 60px;"/>
+                                <div>( _____________________ )</div>
+                                <div style="font-size: 9px; color: #6c757d;">Tgl: ..............................</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div><strong>Logistik / Admin</strong></div>
+                                <div style="height: 60px;"/>
+                                <div>( <span t-esc="o.logistic_id.name or (o.interwarehouse_transfer_id and o.interwarehouse_transfer_id.logistic_id.name) or '_____________________'"/> )</div>
+                                <div style="font-size: 9px; color: #6c757d;">Tgl: ..............................</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div><strong>Driver / Ekspedisi</strong></div>
+                                <div style="height: 60px;"/>
+                                <div>( <span t-esc="o.driver_by or (o.interwarehouse_transfer_id and o.interwarehouse_transfer_id.driver_by) or '_____________________'"/> )</div>
+                                <div style="font-size: 9px; color: #6c757d;">Tgl: ..............................</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div><strong>Penerima (Gudang Tujuan)</strong></div>
+                                <div style="height: 60px;"/>
+                                <div>( _____________________ )</div>
+                                <div style="font-size: 9px; color: #6c757d;">Tgl: ..............................</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

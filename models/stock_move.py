@@ -33,6 +33,29 @@ class StockMove(models.Model):
                     % (wh_from.name, wh_to.name)
                 )
 
+    @api.constrains("product_id", "picking_id")
+    def _check_product_against_sto(self):
+        for move in self:
+            picking = move.picking_id
+            if not picking or not getattr(picking, "interwarehouse_transfer_id", False):
+                continue
+            if getattr(picking, "allow_non_sto_product", False):
+                continue
+            allowed = picking._get_allowed_sto_products()
+            if allowed is not None and move.product_id and move.product_id not in allowed:
+                raise ValidationError(
+                    _(
+                        "⛔ [PROTEKSI TRANSFER GUDANG] Penambahan Produk Ditolak!\n\n"
+                        "Produk '[%s] %s' tidak ada dalam Stock Transfer Order %s.\n\n"
+                        "Dokumen mutasi antar-gudang dikunci hanya untuk produk yang disetujui di STO."
+                    )
+                    % (
+                        move.product_id.default_code or "-",
+                        move.product_id.name,
+                        picking.interwarehouse_transfer_id.name,
+                    )
+                )
+
     # === CORE METHODS ===
 
     def _prepare_merge_moves_distinct_fields(self):
@@ -45,4 +68,10 @@ class StockMove(models.Model):
         transfer = self.interwh_transfer_line_id.transfer_id
         if len(transfer) == 1:
             vals["interwarehouse_transfer_id"] = transfer.id
+            if transfer.send_by:
+                vals["send_by"] = transfer.send_by
+            if transfer.driver_by:
+                vals["driver_by"] = transfer.driver_by
+            if transfer.logistic_id:
+                vals["logistic_id"] = transfer.logistic_id.id
         return vals

@@ -86,6 +86,20 @@
                                 attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
                             />
                         </group>
+                        <group string="Ekspedisi &amp; Armada">
+                            <field
+                                name="send_by"
+                                attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
+                            />
+                            <field
+                                name="driver_by"
+                                attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
+                            />
+                            <field
+                                name="logistic_id"
+                                attrs="{'readonly': [('state', 'in', ['done', 'cancelled'])]}"
+                            />
+                        </group>
                     </group>
                     <notebook>
                         <page string="Products">
@@ -110,6 +124,12 @@
                                     />
                                 </tree>
                             </field>
+                        </page>
+                        <page string="Catatan">
+                            <field
+                                name="notes"
+                                placeholder="Catatan atau instruksi operasional mutasi antar-gudang..."
+                            />
                         </page>
                     </notebook>
                 </sheet>

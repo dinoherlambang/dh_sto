@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_picking_form_inherit_sto_protection" model="ir.ui.view">
+        <field name="name">stock.picking.form.sto.protection</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="priority" eval="60" />
+        <field name="arch" type="xml">
+            <!-- 1. Banner Proteksi Transfer STO di atas Judul H1 -->
+            <xpath expr="//h1" position="before">
+                <field name="has_interwarehouse_transfer" invisible="1" />
+                <field name="interwarehouse_transfer_id" invisible="1" />
+                <div
+                    class="alert alert-info d-flex align-items-center mb-3"
+                    role="alert"
+                    attrs="{'invisible': ['|', ('has_interwarehouse_transfer', '=', False), ('state', 'in', ('done', 'cancel'))]}"
+                    style="border-left: 5px solid #17a2b8; padding: 10px 15px;"
+                >
+                    <i class="fa fa-shield fa-2x mr-3 text-info" />
+                    <div>
+                        <strong>Proteksi Transfer Antar-Gudang Aktif:</strong> Dokumen pengiriman/penerimaan ini terikat dengan Stock Transfer Order (STO). 
+                        Sistem mengunci daftar produk agar <u>hanya produk yang disetujui dalam STO yang dapat diproses</u> guna mencegah selisih stok antar-cabang.
+                    </div>
+                </div>
+                <div
+                    class="alert alert-warning d-flex align-items-center mb-3"
+                    role="alert"
+                    attrs="{'invisible': [('allow_non_sto_product', '=', False)]}"
+                    style="border-left: 5px solid #ffc107; padding: 10px 15px;"
+                >
+                    <i class="fa fa-exclamation-triangle fa-2x mr-3 text-warning" />
+                    <div>
+                        <strong>Peringatan Bypass Aktif:</strong> Pengiriman produk di luar permintaan STO telah diizinkan oleh Manager/Supervisor Inventory.
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- 2. Informasi Ekspedisi & Armada Pengiriman Antar-Gudang -->
+            <xpath expr="//field[@name='origin']" position="after">
+                <field
+                    name="send_by"
+                    attrs="{'invisible': [('has_interwarehouse_transfer', '=', False)]}"
+                />
+                <field
+                    name="driver_by"
+                    attrs="{'invisible': [('has_interwarehouse_transfer', '=', False)]}"
+                />
+                <field
+                    name="logistic_id"
+                    attrs="{'invisible': [('has_interwarehouse_transfer', '=', False)]}"
+                />
+            </xpath>
+
+            <!-- 3. Tab Otorisasi Manajer untuk Bypass STO -->
+            <xpath expr="//page[@name='extra']" position="after">
+                <page
+                    string="Otorisasi Non-STO"
+                    name="page_sto_protection"
+                    groups="stock.group_stock_manager"
+                    attrs="{'invisible': [('has_interwarehouse_transfer', '=', False)]}"
+                >
+                    <group string="Otorisasi Mutasi Produk Non-STO (Manager Override)">
+                        <field
+                            name="allow_non_sto_product"
+                            attrs="{'readonly': [('state', 'in', ('done', 'cancel'))]}"
+                        />
+                        <field
+                            name="non_sto_justification"
+                            attrs="{'invisible': [('allow_non_sto_product', '=', False)], 'required': [('allow_non_sto_product', '=', True)], 'readonly': [('state', 'in', ('done', 'cancel'))]}"
+                            placeholder="Contoh: Pengiriman ban pengganti ukuran darurat sesuai instruksi Direksi/Manager Memo No..."
+                        />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

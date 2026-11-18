@@ -13,6 +13,8 @@
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
         "views/stock_interwarehouse_transfer_views.xml",
+        "views/stock_picking_views.xml",
+        "reports/report_sto_deliveryslip.xml",
     ],
     "installable": True,
     "application": True,

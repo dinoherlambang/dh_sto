@@ -74,6 +74,30 @@ class StockInterwarehouseTransfer(models.Model):
         string="Procurement Group",
         copy=False,
     )
+    send_by = fields.Char(
+        string="Send Via / No. Kendaraan",
+        copy=False,
+        tracking=True,
+        help="Nomor kendaraan atau armada ekspedisi pengiriman antar-gudang.",
+    )
+    driver_by = fields.Char(
+        string="Driver / Sopir",
+        copy=False,
+        tracking=True,
+        help="Nama pengemudi / sopir yang membawa barang.",
+    )
+    logistic_id = fields.Many2one(
+        "res.users",
+        string="Logistic By",
+        default=lambda self: self.env.user,
+        copy=False,
+        tracking=True,
+        help="Petugas / penanggung jawab operasional logistik.",
+    )
+    notes = fields.Text(
+        string="Catatan Pengiriman",
+        help="Catatan atau instruksi khusus operasional mutasi.",
+    )
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
